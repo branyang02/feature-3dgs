@@ -7,6 +7,7 @@ import torch
 
 import argparse
 import os
+from tqdm import tqdm
 
 
 parser = argparse.ArgumentParser(
@@ -65,8 +66,8 @@ def main(args: argparse.Namespace) -> None:
 
     os.makedirs(args.output, exist_ok=True)
 
-    for t in targets:
-        print(f"Processing '{t}'...")
+    for t in tqdm(targets, desc="Processing images"):
+        # print(f"Processing '{t}'...")
         img_name = t.split(os.sep)[-1].split(".")[0]
         image = cv2.imread(t) # (1423, 1908, 3)
         if image is None:
@@ -79,8 +80,8 @@ def main(args: argparse.Namespace) -> None:
         _, fea_h, fea_w = image_embedding_tensor.shape
         cropped_h = int(fea_w / img_w * img_h + 0.5)
         image_embedding_tensor_cropped = image_embedding_tensor[:, :cropped_h, :]
-        print("embedding shape: ", image_embedding_tensor.shape)
-        print("image_embedding_tensor_cropped: ", image_embedding_tensor_cropped.shape)
+        # print("embedding shape: ", image_embedding_tensor.shape)
+        # print("image_embedding_tensor_cropped: ", image_embedding_tensor_cropped.shape)
         torch.save(image_embedding_tensor_cropped, os.path.join(args.output, f"{img_name}_fmap_CxHxW.pt"))
         
 
