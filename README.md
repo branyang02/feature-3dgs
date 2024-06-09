@@ -107,6 +107,11 @@ python convert.py -s <location> --skip_matching [--resize] #If not resizing, Ima
 <br>
 
 # Download Dataset
+Download dataset to `data` directory.
+```bash
+mkdir data
+```
+
 Download [Mip-NeRF 360](https://jonbarron.info/mipnerf360/)'s dataset:
 ```bash
 wget http://storage.googleapis.com/gresearch/refraw360/360_v2.zip
@@ -131,6 +136,10 @@ pip install git+https://github.com/zhanghang1989/PyTorch-Encoding/
 ```
 
 Download the LSeg model file `demo_e200.ckpt` from [the Google drive](https://drive.google.com/file/d/1ayk6NXURI_vIPlym16f_RG3ffxBWHxvb/view?usp=sharing).
+
+```
+gdown 1ayk6NXURI_vIPlym16f_RG3ffxBWHxvb
+```
 
 ### Feature embedding
 ```
@@ -166,6 +175,10 @@ Click the links below to download the checkpoint for the corresponding model typ
 
 And place it at the folder: ```
 encoders/sam_encoder/checkpoints```
+
+```
+mkdir checkpoints && wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
+```
 
 The following optional dependencies are necessary for mask post-processing, saving masks in COCO format.
 
