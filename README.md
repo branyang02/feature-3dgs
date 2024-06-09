@@ -106,7 +106,16 @@ python convert.py -s <location> --skip_matching [--resize] #If not resizing, Ima
 </details>
 <br>
 
+# Download Dataset
+Download [Mip-NeRF 360](https://jonbarron.info/mipnerf360/)'s dataset:
+```bash
+wget http://storage.googleapis.com/gresearch/refraw360/360_v2.zip
+```
 
+Download [3DGS](https://github.com/graphdeco-inria/gaussian-splatting)'s dataset:
+```bash
+wget https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/datasets/input/tandt_db.zip
+```
 
 
 # Feature Encoding from Teacher Network
