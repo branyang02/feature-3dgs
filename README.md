@@ -125,6 +125,8 @@ wget https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/datasets/input/tan
 
 # Feature Encoding from Teacher Network
 
+Note: During this preprocessing step, SAM usually takes shorter time compared to using LSeg. For the counter dataset from MipNeRF 360, SAM takes around 6 minutes and LSeg takes around 30 minutes using a single RTX A6000.
+
 ## LSeg encoder
 
 ### Installation
@@ -176,9 +178,6 @@ Click the links below to download the checkpoint for the corresponding model typ
 And place it at the folder: ```
 encoders/sam_encoder/checkpoints```
 
-```
-mkdir checkpoints && wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
-```
 
 The following optional dependencies are necessary for mask post-processing, saving masks in COCO format.
 
