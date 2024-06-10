@@ -25,22 +25,49 @@ from scene.gaussian_model import BasicPointCloud
 import torch
 
 class CameraInfo(NamedTuple):
+    """
+    ```
     uid: int
-    R: np.array
-    T: np.array
-    FovY: np.array
-    FovX: np.array
-    image: np.array
+    R: np.ndarray
+    T: np.ndarray
+    FovY: np.ndarray
+    FovX: np.ndarray
+    image: np.ndarray
     image_path: str
     image_name: str
     width: int
     height: int
-    semantic_feature: torch.tensor 
+    semantic_feature: torch.Tensor
+    semantic_feature_path: str
+    semantic_feature_name: str
+    ```
+    """
+    uid: int
+    R: np.ndarray
+    T: np.ndarray
+    FovY: np.ndarray
+    FovX: np.ndarray
+    image: np.ndarray
+    image_path: str
+    image_name: str
+    width: int
+    height: int
+    semantic_feature: torch.Tensor
     semantic_feature_path: str 
     semantic_feature_name: str 
 
 
 class SceneInfo(NamedTuple):
+    """
+    ```
+    point_cloud: BasicPointCloud
+    train_cameras: List[CameraInfo]
+    test_cameras: List[CameraInfo]
+    nerf_normalization: dict
+    ply_path: str
+    semantic_feature_dim: int
+    ```
+    """
     point_cloud: BasicPointCloud
     train_cameras: List[CameraInfo]
     test_cameras: List[CameraInfo]
@@ -109,7 +136,8 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder, semantic_fe
         
         semantic_feature_path = os.path.join(semantic_feature_folder, image_name) + '_fmap_CxHxW.pt' 
         semantic_feature_name = os.path.basename(semantic_feature_path).split(".")[0]
-        semantic_feature = torch.load(semantic_feature_path) 
+        semantic_feature = torch.load(semantic_feature_path)
+
 
         cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
                               image_path=image_path, image_name=image_name, width=width, height=height,

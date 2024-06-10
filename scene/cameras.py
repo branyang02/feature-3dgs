@@ -21,23 +21,24 @@ class Camera(nn.Module):
                  ): 
         super(Camera, self).__init__()
 
-        self.uid = uid
-        self.colmap_id = colmap_id
-        self.R = R
-        self.T = T
-        self.FoVx = FoVx
-        self.FoVy = FoVy
-        self.image_name = image_name
-        self.semantic_feature = semantic_feature 
+        self.uid: int = uid
+        self.colmap_id: int = colmap_id
+        self.R: np.ndarray = R
+        self.T: np.ndarray = T
+        self.FoVx: float = FoVx
+        self.FoVy: float = FoVy
+        self.image_name: str = image_name
+        self.semantic_feature: torch.Tensor = semantic_feature 
+        self.data_device: torch.device = torch.device(data_device)
 
-        try:
-            self.data_device = torch.device(data_device)
-        except Exception as e:
-            print(e)
-            print(f"[Warning] Custom device {data_device} failed, fallback to default cuda device" )
-            self.data_device = torch.device("cuda")
+        # try:
+        #     self.data_device = torch.device(data_device)
+        # except Exception as e:
+        #     print(e)
+        #     print(f"[Warning] Custom device {data_device} failed, fallback to default cuda device" )
+        #     self.data_device = torch.device("cuda")
 
-        self.original_image = image.clamp(0.0, 1.0).to(self.data_device)
+        self.original_image: torch.Tensor = image.clamp(0.0, 1.0).to(self.data_device)
         self.image_width = self.original_image.shape[2]
         self.image_height = self.original_image.shape[1]
 

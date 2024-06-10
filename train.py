@@ -10,8 +10,10 @@
 #
 
 import os
+from typing import List
 import torch
 from random import randint
+from scene.cameras import Camera
 from utils.loss_utils import l1_loss, ssim, tv_loss 
 from gaussian_renderer import render, network_gui
 import sys
@@ -40,8 +42,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
     scene = Scene(args=dataset, gaussians=gaussians)
 
     # 2D semantic feature map CNN decoder
-    viewpoint_stack = scene.getTrainCameras().copy()
-    viewpoint_cam = viewpoint_stack.pop(randint(0, len(viewpoint_stack)-1))
+    viewpoint_stack: List[Camera] = scene.getTrainCameras().copy()
+    # Pick a random Camera
+    viewpoint_cam: Camera = viewpoint_stack.pop(randint(0, len(viewpoint_stack)-1))
     gt_feature_map = viewpoint_cam.semantic_feature.cuda()
     feature_out_dim = gt_feature_map.shape[0]
 

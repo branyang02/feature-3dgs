@@ -12,14 +12,16 @@
 from typing import List
 
 from tqdm import tqdm
+from arguments import ModelParams
 from scene.cameras import Camera
 import numpy as np
+from scene.dataset_readers import CameraInfo
 from utils.general_utils import PILtoTorch
 from utils.graphics_utils import fov2focal
 
 WARNED = False
 
-def loadCam(args, id, cam_info, resolution_scale) -> Camera:
+def loadCam(args: ModelParams, id: int, cam_info: CameraInfo, resolution_scale: float) -> Camera:
     """
     Load a camera from a CameraInfo object, with the specified resolution scale from --resolution/r
     """
@@ -70,7 +72,7 @@ def loadCam(args, id, cam_info, resolution_scale) -> Camera:
 
 
 
-def cameraList_from_camInfos(cam_infos, resolution_scale, args) -> List[Camera]:
+def cameraList_from_camInfos(cam_infos: List[CameraInfo], resolution_scale: float, args: ModelParams) -> List[Camera]:
     camera_list: List[Camera] = []
 
     for id, c in tqdm(enumerate(cam_infos), total=len(cam_infos), desc="Loading Cameras"):
