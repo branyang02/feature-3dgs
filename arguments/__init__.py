@@ -57,6 +57,7 @@ class ModelParams(ParamGroup):
         self.eval = False
         self.speedup = False ###
         self.render_items = ['RGB', 'Depth', 'Edge', 'Normal', 'Curvature', 'Feature Map']
+        self.num_train_images = -1  # Default: use all images
         super().__init__(parser, "Loading Parameters", sentinel)
 
     def extract(self, args):

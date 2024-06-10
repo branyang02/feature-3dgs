@@ -35,7 +35,8 @@ from models.networks import CNN_decoder
 from models.semantic_dataloader import VariableSizeDataset
 from torch.utils.data import DataLoader
 
-def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from):
+def training(dataset: ModelParams, opt: ModelParams, pipe: ModelParams, testing_iterations, saving_iterations, checkpoint_iterations, checkpoint, debug_from):
+
     first_iter = 0
     tb_writer = prepare_output_and_logger(dataset)
     gaussians = GaussianModel(dataset.sh_degree)
@@ -87,6 +88,8 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         if not viewpoint_stack:
             viewpoint_stack = scene.getTrainCameras().copy()
         viewpoint_cam = viewpoint_stack.pop(randint(0, len(viewpoint_stack)-1))
+
+        print(viewpoint_cam.semantic_feature.device)
 
         # Render
         if (iteration - 1) == debug_from:

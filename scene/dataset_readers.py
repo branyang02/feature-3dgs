@@ -10,6 +10,7 @@
 #
 
 import os
+import random
 import sys
 from PIL import Image
 from typing import List, NamedTuple
@@ -173,7 +174,7 @@ def storePly(path, xyz, rgb):
     ply_data = PlyData([vertex_element])
     ply_data.write(path)
 
-def readColmapSceneInfo(path, foundation_model, images, eval, llffhold=8) -> SceneInfo:
+def readColmapSceneInfo(path, foundation_model, images, eval, num_train_images, llffhold=8) -> SceneInfo:
     try:
         cameras_extrinsic_file = os.path.join(path, "sparse/0", "images.bin")
         cameras_intrinsic_file = os.path.join(path, "sparse/0", "cameras.bin")
@@ -184,7 +185,14 @@ def readColmapSceneInfo(path, foundation_model, images, eval, llffhold=8) -> Sce
         cameras_intrinsic_file = os.path.join(path, "sparse/0", "cameras.txt")
         cam_extrinsics = read_extrinsics_text(cameras_extrinsic_file)
         cam_intrinsics = read_intrinsics_text(cameras_intrinsic_file)
-    
+
+
+    # Select training images
+    if num_train_images != -1:
+        # randomly select num_train_images
+        cam_extrinsics = dict(random.sample(list(cam_extrinsics.items()), num_train_images))
+
+
     reading_dir = "images" if images == None else images
 
     if foundation_model =='sam':
@@ -288,7 +296,10 @@ def readCamerasFromTransforms(path, transformsfile, white_background, semantic_f
             
     return cam_infos
 
-def readNerfSyntheticInfo(path, foundation_model, white_background, eval, extension=".png") -> SceneInfo: 
+def readNerfSyntheticInfo(path, foundation_model, white_background, eval, num_train_images, extension=".png") -> SceneInfo: 
+
+    # TODO: fix num_train_images, currently not used
+
     if foundation_model =='sam':
         semantic_feature_dir = "sam_embeddings" 
     elif foundation_model =='lseg':
