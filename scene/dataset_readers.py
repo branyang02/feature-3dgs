@@ -12,7 +12,7 @@
 import os
 import sys
 from PIL import Image
-from typing import NamedTuple
+from typing import List, NamedTuple
 from scene.colmap_loader import read_extrinsics_text, read_intrinsics_text, qvec2rotmat, \
     read_extrinsics_binary, read_intrinsics_binary, read_points3D_binary, read_points3D_text
 from utils.graphics_utils import getWorld2View2, focal2fov, fov2focal
@@ -42,8 +42,8 @@ class CameraInfo(NamedTuple):
 
 class SceneInfo(NamedTuple):
     point_cloud: BasicPointCloud
-    train_cameras: list
-    test_cameras: list
+    train_cameras: List[CameraInfo]
+    test_cameras: List[CameraInfo]
     nerf_normalization: dict
     ply_path: str
     semantic_feature_dim: int 
@@ -145,7 +145,7 @@ def storePly(path, xyz, rgb):
     ply_data = PlyData([vertex_element])
     ply_data.write(path)
 
-def readColmapSceneInfo(path, foundation_model, images, eval, llffhold=8):
+def readColmapSceneInfo(path, foundation_model, images, eval, llffhold=8) -> SceneInfo:
     try:
         cameras_extrinsic_file = os.path.join(path, "sparse/0", "images.bin")
         cameras_intrinsic_file = os.path.join(path, "sparse/0", "cameras.bin")
@@ -165,13 +165,19 @@ def readColmapSceneInfo(path, foundation_model, images, eval, llffhold=8):
         semantic_feature_dir = "rgb_feature_langseg" 
     cam_infos_unsorted = readColmapCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, 
                                            images_folder=os.path.join(path, reading_dir), semantic_feature_folder=os.path.join(path, semantic_feature_dir))
-    cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : x.image_name)
+    cam_infos: List[CameraInfo] = sorted(cam_infos_unsorted.copy(), key = lambda x : x.image_name)
     ###cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : int(x.image_name.split('.')[0])) ### if img name is number
     # cam_infos =cam_infos[:30] ###: for scannet only
-    # print(cam_infos)
-    semantic_feature_dim = cam_infos[0].semantic_feature.shape[0]
+
+    # print(cam_infos[0].semantic_feature.shape) # torch.Size([512, 360, 480]) 
+    
+    semantic_feature_dim = cam_infos[0].semantic_feature.shape[0]  # 512
 
     if eval:
+        print("You are in evaluation mode, splitting the dataset into train and test sets.")
+        print("You are in evaluation mode, splitting the dataset into train and test sets.")
+        print("You are in evaluation mode, splitting the dataset into train and test sets.")
+
         train_cam_infos = [c for idx, c in enumerate(cam_infos) if idx % llffhold != 2] # avoid 1st to be test view
         test_cam_infos = [c for idx, c in enumerate(cam_infos) if idx % llffhold == 2] 
         # for i, item in enumerate(test_cam_infos): ### check test set
@@ -254,7 +260,7 @@ def readCamerasFromTransforms(path, transformsfile, white_background, semantic_f
             
     return cam_infos
 
-def readNerfSyntheticInfo(path, foundation_model, white_background, eval, extension=".png"): 
+def readNerfSyntheticInfo(path, foundation_model, white_background, eval, extension=".png") -> SceneInfo: 
     if foundation_model =='sam':
         semantic_feature_dir = "sam_embeddings" 
     elif foundation_model =='lseg':

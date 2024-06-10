@@ -12,8 +12,10 @@
 import os
 import random
 import json
+from typing import Dict, List
+from scene.cameras import Camera
 from utils.system_utils import searchForMaxIteration
-from scene.dataset_readers import sceneLoadTypeCallbacks
+from scene.dataset_readers import CameraInfo, SceneInfo, sceneLoadTypeCallbacks
 from scene.gaussian_model import GaussianModel
 from arguments import ModelParams
 from utils.camera_utils import cameraList_from_camInfos, camera_to_JSON
@@ -37,22 +39,25 @@ class Scene:
                 self.loaded_iter = load_iteration
             print("Loading trained model at iteration {}".format(self.loaded_iter))
 
-        self.train_cameras = {}
-        self.test_cameras = {}
+        self.train_cameras: Dict[float, List[Camera]] = {}
+        self.test_cameras: Dict[float, List[Camera]] = {}
 
+        # Extract scene information
         if os.path.exists(os.path.join(args.source_path, "sparse")):
-            scene_info = sceneLoadTypeCallbacks["Colmap"](args.source_path, args.foundation_model, args.images, args.eval) 
+            scene_info: SceneInfo = sceneLoadTypeCallbacks["Colmap"](args.source_path, args.foundation_model, args.images, args.eval) 
         elif os.path.exists(os.path.join(args.source_path, "transforms_train.json")):
             print("Found transforms_train.json file, assuming Blender data set!")
-            scene_info = sceneLoadTypeCallbacks["Blender"](args.source_path,  args.foundation_model, args.white_background, args.eval) 
+            scene_info: SceneInfo = sceneLoadTypeCallbacks["Blender"](args.source_path,  args.foundation_model, args.white_background, args.eval) 
         else:
             assert False, "Could not recognize scene type!"
 
+
+        # Save scene info when training
         if not self.loaded_iter:
             with open(scene_info.ply_path, 'rb') as src_file, open(os.path.join(self.model_path, "input.ply") , 'wb') as dest_file:
                 dest_file.write(src_file.read())
             json_cams = []
-            camlist = []
+            camlist: List[CameraInfo] = []
             if scene_info.test_cameras:
                 camlist.extend(scene_info.test_cameras)
             if scene_info.train_cameras:
@@ -66,7 +71,7 @@ class Scene:
             random.shuffle(scene_info.train_cameras)  # Multi-res consistent random shuffling
             random.shuffle(scene_info.test_cameras)  # Multi-res consistent random shuffling
 
-        self.cameras_extent = scene_info.nerf_normalization["radius"]
+        self.cameras_extent: float = scene_info.nerf_normalization["radius"]
 
         for resolution_scale in resolution_scales:
             print("Loading Training Cameras")

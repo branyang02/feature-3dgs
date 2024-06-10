@@ -9,6 +9,9 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
+from typing import List
+
+from tqdm import tqdm
 from scene.cameras import Camera
 import numpy as np
 from utils.general_utils import PILtoTorch
@@ -16,7 +19,10 @@ from utils.graphics_utils import fov2focal
 
 WARNED = False
 
-def loadCam(args, id, cam_info, resolution_scale):
+def loadCam(args, id, cam_info, resolution_scale) -> Camera:
+    """
+    Load a camera from a CameraInfo object, with the specified resolution scale from --resolution/r
+    """
     orig_w, orig_h = cam_info.image.size
     
     gt_semantic_feature = cam_info.semantic_feature
@@ -64,15 +70,28 @@ def loadCam(args, id, cam_info, resolution_scale):
 
 
 
-def cameraList_from_camInfos(cam_infos, resolution_scale, args):
-    camera_list = []
+def cameraList_from_camInfos(cam_infos, resolution_scale, args) -> List[Camera]:
+    camera_list: List[Camera] = []
 
-    for id, c in enumerate(cam_infos):
+    for id, c in tqdm(enumerate(cam_infos), total=len(cam_infos), desc="Loading Cameras"):
         camera_list.append(loadCam(args, id, c, resolution_scale))
 
     return camera_list
 
 def camera_to_JSON(id, camera : Camera):
+    """
+    Returns a JSON serializable dictionary of the camera
+    ```
+    'id' : id,
+    'img_name' : camera.image_name,
+    'width' : camera.width,
+    'height' : camera.height,
+    'position': pos.tolist(),
+    'rotation': serializable_array_2d,
+    'fy' : fov2focal(camera.FovY, camera.height),
+    'fx' : fov2focal(camera.FovX, camera.width)
+    ```
+    """
     Rt = np.zeros((4, 4))
     Rt[:3, :3] = camera.R.transpose()
     Rt[:3, 3] = camera.T
