@@ -451,7 +451,7 @@ def test(args):
     for name in ["test", "train", "novel_views"]:
         input_path = os.path.join(args.data, name)
         if not os.path.exists(input_path):
-            print(name, "do not exists!")
+            print(input_path, "do not exists!")
             continue
         image_path = os.path.join(input_path, "ours_{}".format(args.iteration), "renders")
         feature_path = os.path.join(input_path, "ours_{}".format(args.iteration), "saved_feature")
