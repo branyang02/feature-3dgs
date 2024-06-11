@@ -96,3 +96,27 @@ class Scene:
 
     def getTestCameras(self, scale=1.0) -> List[Camera]:
         return self.test_cameras[scale]
+    
+    def __str__(self):
+        info = "Scene Object Details:\n"
+        info += "  - Model Path: {}\n".format(self.model_path)
+        info += "  - Loaded Iteration: {}\n".format(self.loaded_iter if self.loaded_iter is not None else "None")
+
+        if self.loaded_iter:
+            info += "  - Gaussians loaded from: {}\n".format(
+                os.path.join(self.model_path, "point_cloud", "iteration_" + str(self.loaded_iter), "point_cloud.ply"))
+        else:
+            info += "  - Gaussians: Created from point cloud\n"
+
+        info += "  - Number of Training Camera Configurations: {}\n".format(len(self.train_cameras))
+        info += "  - Number of Testing Camera Configurations: {}\n".format(len(self.test_cameras))
+
+        # Optionally, display some details about camera configurations if useful
+        train_cam_details = ", ".join([f"Scale {scale}: {len(cams)} cams" for scale, cams in self.train_cameras.items()])
+        test_cam_details = ", ".join([f"Scale {scale}: {len(cams)} cams" for scale, cams in self.test_cameras.items()])
+        if train_cam_details:
+            info += "  - Training Camera Details: {}\n".format(train_cam_details)
+        if test_cam_details:
+            info += "  - Testing Camera Details: {}\n".format(test_cam_details)
+
+        return info

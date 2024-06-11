@@ -9,6 +9,7 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
+from typing import List
 import torch
 from scene import Scene
 import os
@@ -16,6 +17,7 @@ from tqdm import tqdm
 from os import makedirs
 from gaussian_renderer import render, render_edit 
 import torchvision
+from scene.cameras import Camera
 from utils.general_utils import safe_state
 from argparse import ArgumentParser
 from arguments import ModelParams, PipelineParams, get_combined_args
@@ -87,7 +89,7 @@ def parse_edit_config_and_text_encoding(edit_config):
         
 
 
-def render_set(model_path, name, iteration, views, gaussians, pipeline, background, edit_config, speedup):
+def render_set(model_path, name, iteration, views: List[Camera], gaussians, pipeline, background, edit_config, speedup):
     if edit_config != "no editing":
         edit_dict, text_feature, target = parse_edit_config_and_text_encoding(edit_config)
 
@@ -387,7 +389,7 @@ if __name__ == "__main__":
     pipeline = PipelineParams(parser)
     parser.add_argument("--iteration", default=-1, type=int)
     parser.add_argument("--skip_train", action="store_true")
-    parser.add_argument("--skip_test", action="store_true")
+    parser.add_argument("--skip_test", action="store_true", default=True)
     parser.add_argument("--novel_view", action="store_true") ###
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--video", action="store_true") ###
