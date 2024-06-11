@@ -43,11 +43,10 @@ def training(dataset: ModelParams, opt: ModelParams, pipe: ModelParams, testing_
     scene = Scene(args=dataset, gaussians=gaussians)
 
     # 2D semantic feature map CNN decoder
-    viewpoint_stack: List[Camera] = scene.getTrainCameras().copy()
-    # Pick a random Camera
-    viewpoint_cam: Camera = viewpoint_stack.pop(randint(0, len(viewpoint_stack)-1))
-    gt_feature_map = viewpoint_cam.semantic_feature.cuda()
-    feature_out_dim = gt_feature_map.shape[0]
+    viewpoint_stack_temp = scene.getTrainCameras().copy()
+    viewpoint_cam_temp = viewpoint_stack_temp[randint(0, len(viewpoint_stack_temp)-1)]
+    gt_feature_map_temp = viewpoint_cam_temp.semantic_feature.cuda()
+    feature_out_dim = gt_feature_map_temp.shape[0]
 
     
     # speed up for SAM
@@ -68,7 +67,7 @@ def training(dataset: ModelParams, opt: ModelParams, pipe: ModelParams, testing_
     iter_start = torch.cuda.Event(enable_timing = True)
     iter_end = torch.cuda.Event(enable_timing = True)
 
-    viewpoint_stack = None
+    viewpoint_stack: List[Camera] = []
     ema_loss_for_log = 0.0
     progress_bar = tqdm(range(first_iter, opt.iterations), desc="Training progress")
     first_iter += 1
@@ -87,9 +86,7 @@ def training(dataset: ModelParams, opt: ModelParams, pipe: ModelParams, testing_
         # Pick a random Camera
         if not viewpoint_stack:
             viewpoint_stack = scene.getTrainCameras().copy()
-        viewpoint_cam = viewpoint_stack.pop(randint(0, len(viewpoint_stack)-1))
-
-        print(viewpoint_cam.semantic_feature.device)
+        viewpoint_cam: Camera = viewpoint_stack.pop(randint(0, len(viewpoint_stack)-1))
 
         # Render
         if (iteration - 1) == debug_from:
@@ -116,9 +113,8 @@ def training(dataset: ModelParams, opt: ModelParams, pipe: ModelParams, testing_
         with torch.no_grad():
             # Progress bar
             ema_loss_for_log = 0.4 * loss.item() + 0.6 * ema_loss_for_log
-            if iteration % 10 == 0:
-                progress_bar.set_postfix({"Loss": f"{ema_loss_for_log:.{7}f}"})
-                progress_bar.update(10)
+            progress_bar.set_postfix({"Loss": f"{ema_loss_for_log:.{7}f}"})
+            progress_bar.update()
             if iteration == opt.iterations:
                 progress_bar.close()
 
@@ -254,7 +250,7 @@ if __name__ == "__main__":
     parser.add_argument('--port', type=int, default=6009)
     parser.add_argument('--debug_from', type=int, default=-1)
     parser.add_argument('--detect_anomaly', action='store_true', default=False)
-    parser.add_argument("--test_iterations", nargs="+", type=int, default=[7_000, 30_000])
+    parser.add_argument("--test_iterations", nargs="+", type=int, default=[100, 200, 300, 30_000]) # 7000, 30000
     parser.add_argument("--save_iterations", nargs="+", type=int, default=[1000, 3000, 5000, 7_000, 30_000])
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[])

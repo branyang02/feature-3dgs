@@ -29,8 +29,6 @@ class Camera(nn.Module):
         self.FoVy: float = FoVy
         self.image_name: str = image_name
 
-        if torch.cuda.device_count() == 2:
-            data_device = "cuda:1"
 
         self.semantic_feature: torch.Tensor = semantic_feature.to(data_device)
         self.data_device: torch.device = torch.device(data_device)
