@@ -89,7 +89,7 @@ def parse_edit_config_and_text_encoding(edit_config):
         
 
 
-def render_set(model_path, name, iteration, views: List[Camera], gaussians, pipeline, background, edit_config, speedup):
+def render_set(model_path, name, iteration, views: List[Camera], gaussians: GaussianModel, pipeline, background, edit_config, speedup):
     if edit_config != "no editing":
         edit_dict, text_feature, target = parse_edit_config_and_text_encoding(edit_config)
 

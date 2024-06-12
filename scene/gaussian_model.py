@@ -436,3 +436,11 @@ class GaussianModel:
     def add_densification_stats(self, viewspace_point_tensor, update_filter):
         self.xyz_gradient_accum[update_filter] += torch.norm(viewspace_point_tensor.grad[update_filter,:2], dim=-1, keepdim=True)
         self.denom[update_filter] += 1
+
+
+    def __str__(self):
+        info = "GaussianModel Object Details\n"
+        info += "   - Number of points: {}\n".format(self.get_xyz.shape)
+        info += "   - SH degree: {}\n".format(self.active_sh_degree)
+        info += "   - Semantic Feature Size: {}\n".format(self._semantic_feature.shape)
+        return info
