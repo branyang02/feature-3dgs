@@ -443,7 +443,7 @@ class GaussianModel:
         finder = FeatureFinder(0.9)
 
         # Find similar points to a given target_index, e.g., the first point
-        similar_indices = finder.find_similar_points(self._semantic_feature, 0)
+        similar_indices = finder.find_similar_points(self._semantic_feature, 23)
 
         print(f"Indices of similar points: {similar_indices}")
         with open('similar_indices.txt', 'w') as f:
