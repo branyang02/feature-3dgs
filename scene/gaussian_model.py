@@ -437,10 +437,51 @@ class GaussianModel:
         self.xyz_gradient_accum[update_filter] += torch.norm(viewspace_point_tensor.grad[update_filter,:2], dim=-1, keepdim=True)
         self.denom[update_filter] += 1
 
+    def find_similar_points(self):
+        
+        # Create an instance of FeatureFinder with a specific threshold
+        finder = FeatureFinder(0.9)
+
+        # Find similar points to a given target_index, e.g., the first point
+        similar_indices = finder.find_similar_points(self._semantic_feature, 0)
+
+        print(f"Indices of similar points: {similar_indices}")
+        with open('similar_indices.txt', 'w') as f:
+            f.write(str(similar_indices.tolist()))  # Convert tensor to list and write as string
+
+
 
     def __str__(self):
         info = "GaussianModel Object Details\n"
         info += "   - Number of points: {}\n".format(self.get_xyz.shape)
         info += "   - SH degree: {}\n".format(self.active_sh_degree)
         info += "   - Semantic Feature Size: {}\n".format(self._semantic_feature.shape)
+        info += "   - First 256 semantic features: {}\n".format(self._semantic_feature[0, 0, :])
         return info
+
+
+import torch.nn.functional as F
+
+class FeatureFinder:
+    def __init__(self, threshold=0.95):
+        self.threshold = threshold  # Set a default threshold for similarity
+
+    def find_similar_points(self, semantic_features, target_index):
+        # Ensure the semantic_features tensor is properly squeezed in case it's [N, 1, D]
+        semantic_features = semantic_features.squeeze(1)
+
+        # Extract the target feature from the tensor
+        target_feature = semantic_features[target_index]
+
+        # Compute the cosine similarity between the target and all features
+        # Normalize features to unit vectors before computation
+        similarities = F.cosine_similarity(semantic_features, target_feature.unsqueeze(0), dim=1)
+
+        res = torch.where(similarities > self.threshold)
+
+        print("length of result: ", len(res))
+
+        # Find indices where similarity is above the threshold
+        similar_indices = res[0]
+
+        return similar_indices
