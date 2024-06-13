@@ -251,7 +251,7 @@ if __name__ == "__main__":
     parser.add_argument('--debug_from', type=int, default=-1)
     parser.add_argument('--detect_anomaly', action='store_true', default=False)
     parser.add_argument("--test_iterations", nargs="+", type=int, default=[7000, 30_000]) # 7000, 30000
-    parser.add_argument("--save_iterations", nargs="+", type=int, default=[1000, 3000, 5000, 7_000, 30_000])
+    parser.add_argument("--save_iterations", nargs="+", type=int, default=[100, 1000, 3000, 5000, 7_000, 8000, 9000, 10_000, 11_000, 12_000, 13_000, 14_000, 15_000, 30_000])
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int, default=[])
     parser.add_argument("--start_checkpoint", type=str, default = None)
