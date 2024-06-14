@@ -437,13 +437,13 @@ class GaussianModel:
         self.xyz_gradient_accum[update_filter] += torch.norm(viewspace_point_tensor.grad[update_filter,:2], dim=-1, keepdim=True)
         self.denom[update_filter] += 1
 
-    def find_similar_points(self):
+    def find_similar_points(self, target_index, threshold=0.9):
         
         # Create an instance of FeatureFinder with a specific threshold
-        finder = FeatureFinder(0.9)
+        finder = FeatureFinder(threshold)
 
         # Find similar points to a given target_index, e.g., the first point
-        similar_indices = finder.find_similar_points(self._semantic_feature, 23)
+        similar_indices = finder.find_similar_points(self._semantic_feature, target_index)
 
         print(f"Indices of similar points: {similar_indices}")
         with open('similar_indices.txt', 'w') as f:

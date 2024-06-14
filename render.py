@@ -119,6 +119,7 @@ def render_set(model_path, name, iteration, views: List[Camera], gaussians: Gaus
             feature_in_dim = int(feature_out_dim/2)
             cnn_decoder = CNN_decoder(feature_in_dim, feature_out_dim)
             cnn_decoder.load_state_dict(torch.load(decoder_ckpt_path))
+            print("cnn_decoder loaded")
         
         makedirs(render_path, exist_ok=True)
         makedirs(gts_path, exist_ok=True)
@@ -150,27 +151,70 @@ def render_set(model_path, name, iteration, views: List[Camera], gaussians: Gaus
 
             gt = view.original_image[0:3, :, :]
             gt_feature_map = view.semantic_feature.cuda() 
-            torchvision.utils.save_image(render_pkg["render"], os.path.join(render_path, '{0:05d}'.format(idx) + ".png")) 
-            torchvision.utils.save_image(gt, os.path.join(gts_path, '{0:05d}'.format(idx) + ".png"))
+            # torchvision.utils.save_image(render_pkg["render"], os.path.join(render_path, '{0:05d}'.format(idx) + ".png")) 
+            # torchvision.utils.save_image(gt, os.path.join(gts_path, '{0:05d}'.format(idx) + ".png"))
             
-            ### depth ###
-            depth = render_pkg["depth"]
-            scale_nor = depth.max().item()
-            depth_nor = depth / scale_nor
-            depth_tensor_squeezed = depth_nor.squeeze()  # Remove the channel dimension
-            colormap = plt.get_cmap('jet')
-            depth_colored = colormap(depth_tensor_squeezed.cpu().numpy())
-            depth_colored_rgb = depth_colored[:, :, :3]
-            depth_image = Image.fromarray((depth_colored_rgb * 255).astype(np.uint8))
-            output_path = os.path.join(depth_path, '{0:05d}'.format(idx) + ".png")
-            depth_image.save(output_path)
-            ##############
+            # ### depth ###
+            # depth = render_pkg["depth"]
+            # scale_nor = depth.max().item()
+            # depth_nor = depth / scale_nor
+            # depth_tensor_squeezed = depth_nor.squeeze()  # Remove the channel dimension
+            # colormap = plt.get_cmap('jet')
+            # depth_colored = colormap(depth_tensor_squeezed.cpu().numpy())
+            # depth_colored_rgb = depth_colored[:, :, :3]
+            # depth_image = Image.fromarray((depth_colored_rgb * 255).astype(np.uint8))
+            # output_path = os.path.join(depth_path, '{0:05d}'.format(idx) + ".png")
+            # depth_image.save(output_path)
+            # ##############
 
             # visualize feature map
             feature_map = render_pkg["feature_map"] 
+            print("feature_map", feature_map.shape)
+            print("gt_feature_map", gt_feature_map.shape)
             feature_map = F.interpolate(feature_map.unsqueeze(0), size=(gt_feature_map.shape[1], gt_feature_map.shape[2]), mode='bilinear', align_corners=True).squeeze(0) ###
+            print("feature_map", feature_map.shape)
             if speedup:
                 feature_map = cnn_decoder(feature_map)
+                print("Decoded feature_map shape", feature_map.shape)
+
+
+                # reshape point cloud to match query space
+
+                pc = gaussians.get_semantic_feature.permute(2, 1, 0)
+                reshaped_pc = cnn_decoder(pc)
+                print("reshaped_pc shape", reshaped_pc.shape)
+
+                # encode text
+                query_text = "counter"
+                clip_editor = CLIPEditor()
+                text_feature = clip_editor.encode_text(query_text).cuda()
+                print("text_feature shape", text_feature.shape)
+
+                # Normalize the point cloud features along the dimension of features
+                reshaped_pc_norm = F.normalize(reshaped_pc, p=2, dim=1)
+
+                # Normalize the text feature
+                text_feature_norm = F.normalize(text_feature, p=2, dim=1)
+
+                # Compute cosine similarity
+                # We need to change the shape of text_feature to match reshaped_pc for broadcasting
+                similarity = torch.matmul(text_feature_norm, reshaped_pc_norm.squeeze(1))
+
+                # Assuming you're looking for a similarity threshold, e.g., greater than 0.5
+                threshold = 1
+                similar_indices = torch.where(similarity > threshold)[1]  # Get indices along the 821622 dimension
+
+                print(f"Indices of similar points: {similar_indices}")
+                print(f"Lenght of similar points: {len(similar_indices)}")
+                with open('similar_indices.txt', 'w') as f:
+                    f.write(str(similar_indices.tolist()))  # Convert tensor to list and write as string
+
+
+                exit()
+                
+
+                
+
 
             feature_map_vis = feature_visualize_saving(feature_map)
             Image.fromarray((feature_map_vis.cpu().numpy() * 255).astype(np.uint8)).save(os.path.join(feature_map_path, '{0:05d}'.format(idx) + "_feature_vis.png"))
@@ -362,6 +406,9 @@ def render_sets(dataset : ModelParams, iteration : int, pipeline : PipelineParam
     with torch.no_grad():
         gaussians = GaussianModel(dataset.sh_degree)
         scene = Scene(dataset, gaussians, load_iteration=iteration, shuffle=False)
+
+        print(gaussians)
+        gaussians.find_similar_points(target_index=101)
 
         bg_color = [1,1,1] if dataset.white_background else [0, 0, 0]
         background = torch.tensor(bg_color, dtype=torch.float32, device="cuda")
